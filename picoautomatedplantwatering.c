@@ -5,10 +5,12 @@
 
 #define LED_PIN 25
 #define HUMIDITY_SENSOR_PIN 26
+#define BRIGHTNESS_SENSOR_PIN 27
 #define PUMP_PIN 21
-#define PUMP_ON_MS 2000 // 2 Sekunden
+#define PUMP_ON_MS 1800 // 1.8 Sekunden
 #define SLEEP_MS 3000000 // 15 Minuten
-#define HUMIDITY_THRESHOLD 2500
+#define HUMIDITY_THRESHOLD 2700
+#define BRIGHTNIESS_THRESHOLD 40
 
 int main() {
     gpio_init(PUMP_PIN);
@@ -20,22 +22,33 @@ int main() {
 
     adc_init();
     adc_gpio_init(HUMIDITY_SENSOR_PIN);
-    adc_select_input(0);
+    adc_gpio_init(BRIGHTNESS_SENSOR_PIN);
+
+    uint16_t b = 0;
 
     // Loop forever
     while (true) {
         // 12-bit conversion, assume max value == ADC_VREF == 3.3 V
         const float conversion_factor = 3.3f / (1 << 12);
-        uint16_t result = adc_read();
-        printf("Raw hex value: 0x%03x, raw decimal value %d, voltage: %f V\n", result, result, result * conversion_factor);
-        if (result > HUMIDITY_THRESHOLD){
-            printf("Pump ON\n");
-            //gpio_put(LED_PIN, true);
-            gpio_put(PUMP_PIN, false);
-            sleep_ms(PUMP_ON_MS);
-            printf("Pump OFF\n");
-            //gpio_put(LED_PIN, false);
-            gpio_put(PUMP_PIN, true);
+        adc_select_input(0);
+        uint16_t humidity = adc_read();
+        printf("HUMIDITY: Raw hex value: 0x%03x, raw decimal value %d, voltage: %f V\n", humidity, humidity, humidity * conversion_factor);
+        adc_select_input(1);
+        uint16_t brightness = adc_read();
+        printf("BRIGHTNESS: Raw hex value: 0x%03x, raw decimal value %d, voltage: %f V\n", brightness, brightness, brightness * conversion_factor);
+        if (humidity > HUMIDITY_THRESHOLD){
+            if (brightness+(b/4) > BRIGHTNIESS_THRESHOLD){
+                b = 0;
+                printf("Pump ON\n");
+                //gpio_put(LED_PIN, true);
+                gpio_put(PUMP_PIN, false);
+                sleep_ms(PUMP_ON_MS);
+                printf("Pump OFF\n");
+                //gpio_put(LED_PIN, false);
+                gpio_put(PUMP_PIN, true);
+            } else {
+                b++;
+            }
         }
         sleep_ms(SLEEP_MS);
     }
