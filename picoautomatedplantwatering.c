@@ -32,10 +32,9 @@ int main() {
         const float conversion_factor = 3.3f / (1 << 12);
         adc_select_input(0);
         uint16_t humidity = adc_read();
-        printf("HUMIDITY: Raw hex value: 0x%03x, raw decimal value %d, voltage: %f V\n", humidity, humidity, humidity * conversion_factor);
         adc_select_input(1);
         uint16_t brightness = adc_read();
-        printf("BRIGHTNESS: Raw hex value: 0x%03x, raw decimal value %d, voltage: %f V\n", brightness, brightness, brightness * conversion_factor);
+        printf("HUMIDITY: Raw hex value: 0x%03x, raw decimal value %d, voltage: %f V; BRIGHTNESS: Raw hex value: 0x%03x, raw decimal value %d, voltage: %f V; B: %d of/ %d\n", humidity, humidity, humidity * conversion_factor, brightness, brightness, brightness * conversion_factor, b, HUMIDITY_THRESHOLD);
         if (humidity > HUMIDITY_THRESHOLD){
             if (brightness+(b/4) > BRIGHTNIESS_THRESHOLD){
                 b = 0;
